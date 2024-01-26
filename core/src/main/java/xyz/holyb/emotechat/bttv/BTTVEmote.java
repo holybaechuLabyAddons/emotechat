@@ -1,5 +1,7 @@
 package xyz.holyb.emotechat.bttv;
 
+import net.labymod.api.util.io.web.request.Request;
+
 public class BTTVEmote {
   private static final String EMOTE_IMAGE_ENDPOINT = "https://cdn.betterttv.net/emote/%s/%dx";
 
@@ -19,6 +21,10 @@ public class BTTVEmote {
     emote.user = user;
 
     return emote;
+  }
+
+  public static BTTVEmote fromURL(String url){
+    return Request.ofGson(BTTVEmote.class).executeSync().get();
   }
 
   public String id;

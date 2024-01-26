@@ -16,7 +16,7 @@ import net.labymod.api.client.gui.screen.widget.widgets.layout.ScrollWidget;
 import net.labymod.api.client.gui.screen.widget.widgets.layout.list.HorizontalListWidget;
 import net.labymod.api.client.gui.screen.widget.widgets.layout.list.VerticalListWidget;
 import net.labymod.api.client.gui.screen.widget.widgets.renderer.IconWidget;
-import net.labymod.api.util.logging.Logging;
+import net.labymod.api.util.concurrent.task.Task;
 import xyz.holyb.emotechat.EmoteChatAddon;
 import xyz.holyb.emotechat.bttv.BTTVEmote;
 import xyz.holyb.emotechat.bttv.BTTVSearch;
@@ -146,16 +146,20 @@ public class EmotesActivity extends Activity {
     buttonWidget.setActionListener(() -> {
       if (inputWidget.getText().length() < 3) return;
 
-      resultsWidget.clear();
+      BTTVSearch.search(inputWidget.getText(), (response) -> {
+        Task.builder(() -> {
+          resultsWidget.clear();
 
-      List<BTTVEmote> results = BTTVSearch.search(inputWidget.getText());
-      for (int i = 0; i < results.size(); i++) {
-        BTTVEmote emote = results.get(i);
+          List<BTTVEmote> results = response.get();
+          for (int i = 0; i < results.size(); i++) {
+            BTTVEmote emote = results.get(i);
 
-        if(i == 0) resultsWidget.setSelected(emote);
+            if(i == 0) resultsWidget.setSelected(emote);
 
-        resultsWidget.add(emote);
-      }
+            resultsWidget.add(emote);
+          }
+        }).build().executeOnRenderThread();
+      });
     });
 
     TextFieldWidget nameInput = new TextFieldWidget().addId("name-input");
