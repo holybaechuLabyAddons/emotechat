@@ -6,6 +6,15 @@ import xyz.holyb.emotechat.listener.ChatReceiveListener;
 
 @AddonMain
 public class EmoteChatAddon extends LabyAddon<EmoteChatConfiguration> {
+  private static EmoteChatAddon instance;
+
+  public EmoteChatAddon(){
+    instance = this;
+  }
+
+  public static EmoteChatAddon get(){
+    return instance;
+  }
 
   @Override
   protected void enable() {

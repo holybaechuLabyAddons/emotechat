@@ -1,0 +1,18 @@
+{
+  "emotechat": {
+    "settings": {
+      "name": "EmoteChat",
+      "enabled": {
+        "name": "Enabled"
+      },
+      "openEmotes": {
+        "name": "Edit Saved Emotes",
+        "add": {
+          "searchInput": "Search Keyword...",
+          "searchButton": "Search",
+          "nameInput": "Name..."
+        }
+      }
+    }
+  }
+}
