@@ -16,7 +16,7 @@ labyMod {
         displayName = "EmoteChat"
         author = "holybaechu"
         description = "Use twitch emotes in Minecraft!"
-        minecraftVersion = "1.19.2-1.20.4"
+        minecraftVersion = "1.19.2<*"
         version = System.getenv().getOrDefault("VERSION", "1.0.0")
     }
 
