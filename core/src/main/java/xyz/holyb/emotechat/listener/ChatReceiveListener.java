@@ -53,7 +53,6 @@ public class ChatReceiveListener {
 
   private List<Component> replaceEmoteFromComponents(List<Component> components){
     List<Component> newComponents = new ArrayList<>();
-    boolean containsEmote = false;
 
     for (int i = 0, componentsSize = components.size(); i < componentsSize; i++) {
       Component component = components.get(i);
@@ -68,7 +67,6 @@ public class ChatReceiveListener {
 
           if (matcher.matches()) {
             isEmote = true;
-            containsEmote = true;
             newComponents.add(replaceEmote(textComponent.getText()));
 
             break;
@@ -79,7 +77,7 @@ public class ChatReceiveListener {
       }
     }
 
-    return containsEmote ? newComponents : components;
+    return newComponents;
   }
 
   @Subscribe
