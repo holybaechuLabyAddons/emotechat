@@ -173,6 +173,8 @@ public class EmotesActivity extends Activity {
       BTTVEmote selected = resultsWidget.getSelected();
       String name = nameInput.getText();
 
+      if (name.contains(" ")) return;
+
       this.emoteWidgets.put(name, new EmoteWidget(name, selected));
       this.addon.configuration().getEmotes().put(name, selected);
       this.setAction(null);
