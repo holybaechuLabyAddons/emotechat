@@ -12,6 +12,12 @@
           "searchButton": "Search",
           "nameInput": "Name..."
         }
+      },
+      "emoteSize": {
+        "name": "Emote Size"
+      },
+      "emoteQuality": {
+        "name": "Emote Quality"
       }
     }
   }

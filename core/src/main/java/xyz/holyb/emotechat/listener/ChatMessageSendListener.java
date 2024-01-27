@@ -26,7 +26,7 @@ public class ChatMessageSendListener {
       int finalI = i;
       addon.configuration().getEmotes().forEach((name, emote) -> {
         if(name.toLowerCase().equals(word.substring(1, word.length()-1))){
-          words[finalI] = String.format("<:%s:%s>", emote.code, emote.id);
+          words[finalI] = String.format("<:%s:%s@%s>", emote.code, emote.id, "BTTV"); // ex: <:pepoG:5d63e543375afb1da9a68a5a@BTTV>
         }
       });
     }
