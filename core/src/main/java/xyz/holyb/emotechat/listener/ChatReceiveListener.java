@@ -6,6 +6,7 @@ import net.labymod.api.client.component.TextComponent;
 import net.labymod.api.client.gui.icon.Icon;
 import net.labymod.api.event.Subscribe;
 import net.labymod.api.event.client.chat.ChatReceiveEvent;
+import net.labymod.api.util.logging.Logging;
 import xyz.holyb.emotechat.EmoteChatAddon;
 import xyz.holyb.emotechat.bttv.BTTVEmote;
 import java.util.ArrayList;
@@ -52,6 +53,7 @@ public class ChatReceiveListener {
 
   private List<Component> replaceEmoteFromComponents(List<Component> components){
     List<Component> newComponents = new ArrayList<>();
+    boolean containsEmote = false;
 
     for (int i = 0, componentsSize = components.size(); i < componentsSize; i++) {
       Component component = components.get(i);
@@ -66,6 +68,7 @@ public class ChatReceiveListener {
 
           if (matcher.matches()) {
             isEmote = true;
+            containsEmote = true;
             newComponents.add(replaceEmote(textComponent.getText()));
 
             break;
@@ -76,11 +79,13 @@ public class ChatReceiveListener {
       }
     }
 
-    return newComponents;
+    return containsEmote ? newComponents : components;
   }
 
   @Subscribe
   public void onChatReceive(ChatReceiveEvent event) {
+    if (!addon.configuration().enabled().get()) return;
+
     ChatMessage message = event.chatMessage();
 
     if (message.component().getChildren().isEmpty()){
