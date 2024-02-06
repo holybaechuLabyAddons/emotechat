@@ -8,6 +8,7 @@ import net.labymod.api.client.gui.screen.widget.widgets.input.SwitchWidget.Switc
 import net.labymod.api.configuration.loader.annotation.ConfigName;
 import net.labymod.api.configuration.loader.annotation.Exclude;
 import net.labymod.api.configuration.loader.property.ConfigProperty;
+import net.labymod.api.configuration.settings.annotation.SettingSection;
 import net.labymod.api.util.MethodOrder;
 import xyz.holyb.emotechat.activity.EmotesActivity;
 import xyz.holyb.emotechat.bttv.BTTVEmote;
@@ -29,6 +30,10 @@ public class EmoteChatConfiguration extends AddonConfig {
   @SliderSetting(min=1, max=3)
   private final ConfigProperty<Integer> emoteQuality = new ConfigProperty<>(1);
 
+  @SettingSection("experimental")
+  @SwitchSetting
+  private final ConfigProperty<Boolean> animatedEmotes = new ConfigProperty<>(false);
+
   @Override
   public ConfigProperty<Boolean> enabled() {
     return this.enabled;
@@ -45,4 +50,6 @@ public class EmoteChatConfiguration extends AddonConfig {
   public ConfigProperty<Integer> emoteSize() { return this.emoteSize; }
 
   public ConfigProperty<Integer> emoteQuality() { return this.emoteQuality; }
+
+  public ConfigProperty<Boolean> animatedEmotes() { return this.animatedEmotes; }
 }

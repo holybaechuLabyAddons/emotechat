@@ -18,6 +18,15 @@
       },
       "emoteQuality": {
         "name": "Emote Quality"
+      },
+      "animatedEmotes": {
+        "name": "Animated Emotes (Experimental)",
+        "description": "Renders animated emotes instead of static image.\nWARNING: This is experimental option. This option can cause high memory usage."
+      },
+      "header": {
+        "experimental": {
+          "name": "Experimental Options"
+        }
       }
     }
   }
