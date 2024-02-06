@@ -75,7 +75,7 @@ public class ChatReceiveListener {
       // Emote
       children.add(
         Component.empty().setChildren(List.of(
-          Component.icon(Icon.url(BTTVEmote.id(emoteID).getImageURL(addon.configuration().emoteQuality().get()))),
+          Component.icon(Icon.url(BTTVEmote.id(emoteID).getImageURL(addon.configuration().emoteQuality().get()))).setSize(addon.configuration().emoteSize().get()),
           Component.text(" ")
         )
       ));
@@ -112,6 +112,8 @@ public class ChatReceiveListener {
 
   @Subscribe
   public void onChatReceive(ChatReceiveEvent event) {
+    if (!addon.configuration().enabled().get()) return;
+
     ChatMessage message = event.chatMessage();
 
     if (message.component().getChildren().isEmpty()){
