@@ -10,83 +10,115 @@ import net.labymod.api.util.concurrent.task.Task;
 import xyz.holyb.emotechat.EmoteChatAddon;
 import xyz.holyb.emotechat.bttv.BTTVEmote;
 import xyz.holyb.emotechat.utils.ImageUtils;
+
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.*;
+import java.util.Map.Entry;
 
 public class ChatReceiveListener {
+  // TODO: integrate api to use emotes without using long string (once i buy server for that)
+  // ^ reference: https://github.com/EmoteChat/EmoteChat/blob/master/emotechat-core/src/main/java/de/emotechat/addon/bttv/EmoteProvider.java
+
   private final EmoteChatAddon addon;
   private final ImageUtils imageUtils = new ImageUtils();
-
-  private final Pattern matchRegex = Pattern.compile("<:([a-zA-Z0-9]+):([a-z0-9]+)@(BTTV)>"); // ex: <:pepoG:5d63e543375afb1da9a68a5a@BTTV>
 
   public ChatReceiveListener(EmoteChatAddon addon) {
     this.addon = addon;
   }
 
-  private Component replaceEmote(String message, ChatReceiveEvent event) throws IOException {
-    Component newComponent = Component.empty();
-    List<Component> componentChildren = new ArrayList<>();
+  private String isEmote(String word) {
+    // ex: <:pepoG:5d63e543375afb1da9a68a5a@BTTV>
 
-    for (String word : message.split(" ")){
-      Matcher matcher = this.matchRegex.matcher(word);
+    if (!(
+        word.startsWith("<") &&
+            word.endsWith(">")
+    )) return null;
 
-      if (!matcher.matches()) {
-        componentChildren.add(Component.text(word + " "));
-        continue;
-      }
+    String[] parts = word.substring(2, word.length()-1).split("[:@]");
 
-      BTTVEmote emote = BTTVEmote.id(matcher.group(2));
+    if (parts.length != 3) return null;
+    if (
+        parts[0].matches("^[A-Za-z0-9_.]+$") && // Emote slug/name
+        parts[1].matches("^[A-Za-z0-9_.]+$") && // Emote ID from provider
+        Objects.equals(parts[2], "BTTV") // Emote provider (only BTTV for now)
+    ) return parts[1];
 
-      Component emoteComponent = Component.empty();
-
-      if (emote.animated) {
-        emoteComponent.setChildren(
-            Arrays.asList(
-                addon.gameTickListener.addAnimatedEmote(event, imageUtils.getBufferedImagesFromGIF(emote.getImageURL(addon.configuration().emoteQuality().get()))),
-            Component.text(" ")));
-      }else {
-        emoteComponent.setChildren(Arrays.asList(
-            Component.icon(Icon.url(emote.getImageURL(addon.configuration().emoteQuality().get())))
-                .setSize(addon.configuration().emoteSize().get()),
-            Component.text(" ")));
-      }
-      componentChildren.add(emoteComponent);
-    }
-
-    newComponent.setChildren(componentChildren);
-
-    return newComponent;
+    return null;
   }
 
-  private List<Component> replaceEmoteFromComponents(List<Component> components, ChatReceiveEvent event)
+  private Map<String, Integer> containsEmote(String string) {
+    Map<String, Integer> emotes = new HashMap<>();
+
+    String[] words = string.split(" ");
+    for (int i = 0; i < words.length; i++) {
+      String word = words[i];
+
+      String emoteID = isEmote(word);
+      if (Objects.nonNull(emoteID)) emotes.put(emoteID, i);
+    }
+
+    return emotes;
+  }
+
+  private TextComponent replaceEmote(TextComponent component, Map<String, Integer> emotes, ChatMessage message)
+      throws IOException {
+    // ! Needs to be called when component contains emote
+
+    Collection<Component> children = new ArrayList<>();
+
+    String[] words = component.getText().split(" ");
+    int lastPos = 0;
+    for (Entry<String, Integer> entry : emotes.entrySet()) {
+      String emoteID = entry.getKey();
+      Integer emotePos = entry.getValue();
+
+      children.add(component.copy().text(String.join(" ", Arrays.copyOfRange(words, lastPos, emotePos))+" "));
+
+      // Emote
+      BTTVEmote bttvEmote = BTTVEmote.id(emoteID);
+
+      if (bttvEmote.animated && addon.configuration().animatedEmotes().get()) {
+        children.add(
+            Component.empty().setChildren(List.of(
+                addon.gameTickListener.addAnimatedEmote(message, imageUtils.getBufferedImagesFromGIF(bttvEmote.getImageURL(addon.configuration().emoteQuality().get()))),
+                Component.text(" ")
+            ))
+        );
+      } else {
+        children.add(
+          Component.empty().setChildren(List.of(
+            Component.icon(Icon.url(bttvEmote.getImageURL(addon.configuration().emoteQuality().get()))).setSize(addon.configuration().emoteSize().get()),
+            Component.text(" ")
+          ))
+        );
+      }
+
+      lastPos = emotePos;
+    }
+
+    children.add(component.copy().text(String.join(" ", Arrays.copyOfRange(words, lastPos+1, words.length))));
+
+    return Component.empty().setChildren(children);
+  }
+
+  private List<Component> replaceEmoteFromComponents(List<Component> components, ChatMessage message)
       throws IOException {
     List<Component> newComponents = new ArrayList<>();
 
-    for (int i = 0, componentsSize = components.size(); i < componentsSize; i++) {
-      Component component = components.get(i);
-
-      if (!component.getChildren().isEmpty()) replaceEmoteFromComponents(component.getChildren(), event);
+    for (Component component : components) {
+      if (!component.getChildren().isEmpty()) {
+        component = Component.empty().setChildren(replaceEmoteFromComponents(component.getChildren(), message));
+      }
 
       if (component instanceof TextComponent textComponent) {
-        boolean isEmote = false;
+        Map<String, Integer> emotes = containsEmote(textComponent.getText());
 
-        for (String word : textComponent.getText().split(" ")) {
-          Matcher matcher = this.matchRegex.matcher(word);
-
-          if (matcher.matches()) {
-            isEmote = true;
-            newComponents.add(replaceEmote(textComponent.getText(), event));
-
-            break;
-          }
+        if (!emotes.isEmpty()) {
+          component = replaceEmote(textComponent, emotes, message);
         }
-
-        if (!isEmote) newComponents.add(component);
       }
+
+      newComponents.add(component);
     }
 
     return newComponents;
@@ -98,22 +130,36 @@ public class ChatReceiveListener {
 
     ChatMessage message = event.chatMessage();
 
-    Task.builder(() -> {
-      try {
-        if (message.component().getChildren().isEmpty()){
-          Component component = replaceEmote(message.getFormattedText(), event);
-          Task.builder(() -> message.edit(component)).build().executeOnRenderThread();
-        }else {
-          try {
-            message.component().setChildren(replaceEmoteFromComponents(message.component().getChildren(), event));
-          } catch (IOException e) {
-            throw new RuntimeException(e);
-          }
-          Task.builder(() -> message.edit(message.component())).build().executeOnRenderThread();
+    if (message.component().getChildren().isEmpty()){
+      Map<String, Integer> emotes = containsEmote(message.getFormattedText());
+
+      if (emotes.isEmpty()) return;
+
+      Task.builder(() -> {
+        try {
+          TextComponent component = replaceEmote(Component.text(message.getFormattedText()), emotes,
+              message);
+          Task.builder(() -> {
+            // Execute on render thread to prevent emote not being rendered for a long time
+            message.edit(component);
+          }).build().executeOnRenderThread();
+        } catch (Exception e) {
+          e.printStackTrace();
         }
-      }catch (Exception e) {
-        e.printStackTrace();
-      }
-    }).build().execute();
+      }).build().execute();
+    } else {
+      Task.builder(() -> {
+        try {
+          List<Component> newChildren = replaceEmoteFromComponents(message.component().getChildren(), message);
+
+          if (newChildren.equals(message.component().getChildren())) return;
+
+          // Execute on render thread to prevent emote not being rendered for a long time
+          Task.builder(() -> message.edit(message.component().setChildren(newChildren))).build().executeOnRenderThread();
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
+      }).build().execute();
+    }
   }
 }

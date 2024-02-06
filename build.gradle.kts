@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "xyz.holyb"
-version = "1.0.3"
+version = "1.0.4"
 
 java.toolchain.languageVersion.set(JavaLanguageVersion.of(17))
 
@@ -17,7 +17,7 @@ labyMod {
         author = "holybaechu"
         description = "Use twitch emotes in Minecraft!"
         minecraftVersion = "1.19.2<*"
-        version = System.getenv().getOrDefault("VERSION", "1.0.3")
+        version = System.getenv().getOrDefault("VERSION", "1.0.4")
     }
 
     minecraft {
