@@ -9,6 +9,8 @@ import net.labymod.api.event.client.chat.ChatReceiveEvent;
 import net.labymod.api.util.concurrent.task.Task;
 import xyz.holyb.emotechat.EmoteChatAddon;
 import xyz.holyb.emotechat.bttv.BTTVEmote;
+import xyz.holyb.emotechat.emote.LegacyGlobalId;
+import xyz.holyb.emotechat.emote.LegacyServerEmote;
 import xyz.holyb.emotechat.utils.ImageUtils;
 
 import java.io.IOException;
@@ -26,41 +28,21 @@ public class ChatReceiveListener {
     this.addon = addon;
   }
 
-  private String isEmote(String word) {
-    // ex: <:pepoG:5d63e543375afb1da9a68a5a@BTTV>
-
-    if (!(
-        word.startsWith("<") &&
-            word.endsWith(">")
-    )) return null;
-
-    String[] parts = word.substring(2, word.length()-1).split("[:@]");
-
-    if (parts.length != 3) return null;
-    if (
-        parts[0].matches("^[A-Za-z0-9_.]+$") && // Emote slug/name
-        parts[1].matches("^[A-Za-z0-9_.]+$") && // Emote ID from provider
-        Objects.equals(parts[2], "BTTV") // Emote provider (only BTTV for now)
-    ) return parts[1];
-
-    return null;
-  }
-
-  private Map<String, Integer> containsEmote(String string) {
-    Map<String, Integer> emotes = new HashMap<>();
+  private Map<LegacyGlobalId, Integer> containsEmote(String string) {
+    Map<LegacyGlobalId, Integer> emotes = new HashMap<>();
 
     String[] words = string.split(" ");
     for (int i = 0; i < words.length; i++) {
       String word = words[i];
 
-      String emoteID = isEmote(word);
+      LegacyGlobalId emoteID = LegacyGlobalId.parse(addon.legacyEmoteProvider.idSplitter, word);
       if (Objects.nonNull(emoteID)) emotes.put(emoteID, i);
     }
 
     return emotes;
   }
 
-  private TextComponent replaceEmote(TextComponent component, Map<String, Integer> emotes, ChatMessage message)
+  private TextComponent replaceEmote(TextComponent component, Map<LegacyGlobalId, Integer> emotes, ChatMessage message)
       throws IOException {
     // ! Needs to be called when component contains emote
 
@@ -68,14 +50,15 @@ public class ChatReceiveListener {
 
     String[] words = component.getText().split(" ");
     int lastPos = 0;
-    for (Entry<String, Integer> entry : emotes.entrySet()) {
-      String emoteID = entry.getKey();
+    for (Entry<LegacyGlobalId, Integer> entry : emotes.entrySet()) {
+      LegacyGlobalId emoteID = entry.getKey();
       Integer emotePos = entry.getValue();
 
       children.add(component.copy().text(String.join(" ", Arrays.copyOfRange(words, lastPos, emotePos))+" "));
 
       // Emote
-      BTTVEmote bttvEmote = BTTVEmote.id(emoteID);
+      LegacyServerEmote serverEmote = addon.legacyEmoteProvider.retrieveEmoteByGlobalId(emoteID);
+      BTTVEmote bttvEmote = new BTTVEmote(serverEmote.globalId, serverEmote.bttvId, serverEmote.name, serverEmote.imageType);
 
       if (bttvEmote.animated && addon.configuration().animatedEmotes().get()) {
         children.add(
@@ -111,7 +94,7 @@ public class ChatReceiveListener {
       }
 
       if (component instanceof TextComponent textComponent) {
-        Map<String, Integer> emotes = containsEmote(textComponent.getText());
+        Map<LegacyGlobalId, Integer> emotes = containsEmote(textComponent.getText());
 
         if (!emotes.isEmpty()) {
           component = replaceEmote(textComponent, emotes, message);
@@ -131,7 +114,7 @@ public class ChatReceiveListener {
     ChatMessage message = event.chatMessage();
 
     if (message.component().getChildren().isEmpty()){
-      Map<String, Integer> emotes = containsEmote(message.getFormattedText());
+      Map<LegacyGlobalId, Integer> emotes = containsEmote(message.getFormattedText());
 
       if (emotes.isEmpty()) return;
 

@@ -22,7 +22,7 @@ public class EmoteChatConfiguration extends AddonConfig {
   private final ConfigProperty<Boolean> enabled = new ConfigProperty<>(true);
 
   @Exclude
-  private Map<String, BTTVEmote> emotes = new HashMap<>();
+  public Map<String, BTTVEmote> emotes = new HashMap<>();
 
   @SliderSetting(min=8, max=32)
   private final ConfigProperty<Integer> emoteSize = new ConfigProperty<>(16);

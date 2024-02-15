@@ -173,6 +173,8 @@ public class EmotesActivity extends Activity {
       BTTVEmote selected = resultsWidget.getSelected();
       String name = nameInput.getText();
 
+      selected.legacyGlobalId = addon.legacyEmoteProvider.addEmote(selected.id).globalId;
+
       if (name.contains(" ")) return;
 
       this.emoteWidgets.put(name, new EmoteWidget(name, selected));
