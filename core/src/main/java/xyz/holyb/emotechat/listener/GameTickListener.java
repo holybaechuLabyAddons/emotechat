@@ -1,59 +1,84 @@
 package xyz.holyb.emotechat.listener;
 
-import net.labymod.api.client.chat.ChatMessage;
+import net.labymod.api.Laby;
 import net.labymod.api.client.component.Component;
 import net.labymod.api.client.component.IconComponent;
 import net.labymod.api.client.gui.icon.Icon;
 import net.labymod.api.event.Subscribe;
-import net.labymod.api.event.client.chat.ChatReceiveEvent;
 import net.labymod.api.event.client.lifecycle.GameTickEvent;
+import net.labymod.api.client.chat.ChatMessage;
+import xyz.holyb.emotechat.EmoteChatAddon;
+import xyz.holyb.emotechat.bttv.BTTVEmote;
 import xyz.holyb.emotechat.utils.ImageUtils;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class GameTickListener {
   private final ImageUtils imageUtils = new ImageUtils();
+  private final EmoteChatAddon addon;
 
-  private final Map<ChatMessage, List<BufferedImage>> animatedEmotes = new HashMap<>();
-  private final Map<ChatMessage, Iterator<BufferedImage>> iterators = new HashMap<>();
+  private final Map<String, List<String>> animatedEmotes = new HashMap<>();
+  private final Map<String, Integer> frameCounts = new HashMap<>();
+  private final Map<String, List<ChatMessage>> messages = new HashMap<>();
 
-  public IconComponent addAnimatedEmote(ChatMessage message, List<BufferedImage> bufferedImages) throws IOException {
-    animatedEmotes.put(message, bufferedImages);
-    iterators.put(message, bufferedImages.iterator());
-
-    return Component.icon(Icon.url("data:image/png;base64,"+imageUtils.getBase64FromImage(bufferedImages.get(0))));
+  public GameTickListener(EmoteChatAddon addon) {
+    this.addon = addon;
   }
 
-  private void nextFrame(List<Component> components, String url) {
+  public IconComponent addAnimatedEmote(BTTVEmote emote, ChatMessage message) throws IOException {
+    Integer emoteQuality = addon.configuration().emoteQuality().get();
+    String key = emote.legacyGlobalId.emoteId+"x"+emoteQuality;
+    if (!this.animatedEmotes.containsKey(key)) {
+      List<String> emoteFrames = new ArrayList<>();
+      for (BufferedImage image : imageUtils.getBufferedImagesFromGIF(emote.getImageURL(emoteQuality))) {
+        String base64 = "data:image/png;base64,"+imageUtils.getBase64FromImage(image);
+        emoteFrames.add(base64);
+      }
+      this.animatedEmotes.put(key, emoteFrames);
+      this.frameCounts.put(key, 0);
+    }
+
+    if (!this.messages.containsKey(key)) {
+      this.messages.put(key, new ArrayList<>());
+    }
+    this.messages.get(key).add(message);
+
+    return Component.icon(Icon.url(this.animatedEmotes.get(key).get(0))).setSize(addon.configuration().emoteSize().get());
+  }
+
+  private void updateIcon(List<Component> components, String url) {
     for (Component component : components) {
-      if (!component.getChildren().isEmpty()) nextFrame(component.getChildren(), url);
+      if (!component.getChildren().isEmpty()) updateIcon(component.getChildren(), url);
 
       if (component instanceof IconComponent iconComponent){
-        iconComponent.setIcon(Icon.url(url));
+        iconComponent.setIcon(Icon.url(url)).setSize(addon.configuration().emoteSize().get());
       }
     }
   }
 
   @Subscribe
   public void onGameTick(GameTickEvent e) {
-    animatedEmotes.forEach((message, bufferedImages) -> {
-      Iterator<BufferedImage> iterator = iterators.get(message);
+    animatedEmotes.forEach((globalId, base64s) -> {
+      List<ChatMessage> messages = this.messages.get(globalId);
+      Iterator<ChatMessage> iterator = messages.iterator();
 
-      if (iterator.hasNext()) {
-          try {
-            nextFrame(message.component().getChildren(), "data:image/png;base64,"+imageUtils.getBase64FromImage(iterator.next()));
-
-            message.edit(message.component());
-          } catch (IOException exception) {
-              throw new RuntimeException(exception);
-          }
-      }else {
-        iterators.replace(message, bufferedImages.iterator());
+      if (frameCounts.get(globalId) >= base64s.size()) {
+        frameCounts.replace(globalId, 0);
       }
+
+      while (iterator.hasNext()) {
+        ChatMessage message = iterator.next();
+
+        if (!Laby.labyAPI().chatProvider().chatController().getMessages().contains(message)) {
+          iterator.remove();
+          continue;
+        }
+
+        updateIcon(message.component().getChildren(), this.animatedEmotes.get(globalId).get(frameCounts.get(globalId)));
+        message.edit(message.component());
+      }
+      frameCounts.replace(globalId, frameCounts.get(globalId) + 1);
     });
   }
 }

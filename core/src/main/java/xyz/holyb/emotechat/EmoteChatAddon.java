@@ -21,7 +21,7 @@ public class EmoteChatAddon extends LabyAddon<EmoteChatConfiguration> {
     return instance;
   }
 
-  public GameTickListener gameTickListener = new GameTickListener();
+  public GameTickListener gameTickListener = new GameTickListener(this);
 
   public LegacyEmoteProvider legacyEmoteProvider = new LegacyEmoteProvider(this);
 

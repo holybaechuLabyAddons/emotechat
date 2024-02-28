@@ -63,7 +63,7 @@ public class ChatReceiveListener {
       if (bttvEmote.animated && addon.configuration().animatedEmotes().get()) {
         children.add(
             Component.empty().setChildren(List.of(
-                addon.gameTickListener.addAnimatedEmote(message, imageUtils.getBufferedImagesFromGIF(bttvEmote.getImageURL(addon.configuration().emoteQuality().get()))),
+                addon.gameTickListener.addAnimatedEmote(bttvEmote, message),
                 Component.text(" ")
             ))
         );
