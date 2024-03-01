@@ -2,12 +2,10 @@ package xyz.holyb.emotechat;
 
 import net.labymod.api.addon.LabyAddon;
 import net.labymod.api.models.addon.annotation.AddonMain;
-import xyz.holyb.emotechat.bttv.BTTVEmote;
 import xyz.holyb.emotechat.emote.LegacyEmoteProvider;
 import xyz.holyb.emotechat.listener.ChatMessageSendListener;
-import xyz.holyb.emotechat.listener.GameTickListener;
+import xyz.holyb.emotechat.listener.AnimatedEmoteRenderer;
 import xyz.holyb.emotechat.listener.ChatReceiveListener;
-import java.util.Map;
 
 @AddonMain
 public class EmoteChatAddon extends LabyAddon<EmoteChatConfiguration> {
@@ -21,7 +19,7 @@ public class EmoteChatAddon extends LabyAddon<EmoteChatConfiguration> {
     return instance;
   }
 
-  public GameTickListener gameTickListener = new GameTickListener(this);
+  public AnimatedEmoteRenderer gameTickListener = new AnimatedEmoteRenderer(this);
 
   public LegacyEmoteProvider legacyEmoteProvider = new LegacyEmoteProvider(this);
 

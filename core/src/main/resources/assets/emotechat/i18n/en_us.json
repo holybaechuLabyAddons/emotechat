@@ -23,6 +23,10 @@
         "name": "Animated Emotes (Experimental)",
         "description": "Renders animated emotes instead of static image.\nWARNING: This is experimental option. This option can cause high memory usage."
       },
+      "doNotCheckForUnknownMessages": {
+        "name": "Do not check for unknown messages",
+        "description": "Turn this option on if you have issue with animated emotes, Such as animated emotes stuck at first frame."
+      },
       "header": {
         "experimental": {
           "name": "Experimental Options"

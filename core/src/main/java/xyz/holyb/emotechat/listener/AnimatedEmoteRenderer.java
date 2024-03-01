@@ -14,7 +14,7 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.*;
 
-public class GameTickListener {
+public class AnimatedEmoteRenderer {
   private final ImageUtils imageUtils = new ImageUtils();
   private final EmoteChatAddon addon;
 
@@ -22,7 +22,7 @@ public class GameTickListener {
   private final Map<String, Integer> frameCounts = new HashMap<>();
   private final Map<String, List<ChatMessage>> messages = new HashMap<>();
 
-  public GameTickListener(EmoteChatAddon addon) {
+  public AnimatedEmoteRenderer(EmoteChatAddon addon) {
     this.addon = addon;
   }
 
@@ -59,6 +59,8 @@ public class GameTickListener {
 
   @Subscribe
   public void onGameTick(GameTickEvent e) {
+    List<String> emotesToRemove = new ArrayList<>();
+
     animatedEmotes.forEach((globalId, base64s) -> {
       List<ChatMessage> messages = this.messages.get(globalId);
       Iterator<ChatMessage> iterator = messages.iterator();
@@ -70,8 +72,11 @@ public class GameTickListener {
       while (iterator.hasNext()) {
         ChatMessage message = iterator.next();
 
-        if (!Laby.labyAPI().chatProvider().chatController().getMessages().contains(message)) {
+        if (!this.addon.configuration().doNotCheckForUnknownMessages().get() && Laby.labyAPI().chatProvider().chatController().getMessages().contains(message)) {
           iterator.remove();
+          if (this.messages.get(globalId).isEmpty()) {
+            emotesToRemove.add(globalId);
+          }
           continue;
         }
 
@@ -80,5 +85,11 @@ public class GameTickListener {
       }
       frameCounts.replace(globalId, frameCounts.get(globalId) + 1);
     });
+
+    for (String emote : emotesToRemove) {
+      this.animatedEmotes.remove(emote);
+      this.frameCounts.remove(emote);
+      this.messages.remove(emote);
+    }
   }
 }

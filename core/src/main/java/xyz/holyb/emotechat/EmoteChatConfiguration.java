@@ -1,5 +1,6 @@
 package xyz.holyb.emotechat;
 
+import net.labymod.api.Laby;
 import net.labymod.api.addon.AddonConfig;
 import net.labymod.api.client.gui.screen.activity.Activity;
 import net.labymod.api.client.gui.screen.widget.widgets.activity.settings.ActivitySettingWidget.ActivitySetting;
@@ -34,6 +35,12 @@ public class EmoteChatConfiguration extends AddonConfig {
   @SwitchSetting
   private final ConfigProperty<Boolean> animatedEmotes = new ConfigProperty<>(false);
 
+  @SwitchSetting
+  private final ConfigProperty<Boolean> doNotCheckForUnknownMessages = new ConfigProperty<>(
+      Laby.labyAPI().addonService().isEnabled("chatutilities") ||
+      Laby.labyAPI().addonService().isEnabled("chattime")
+  );
+
   @Override
   public ConfigProperty<Boolean> enabled() {
     return this.enabled;
@@ -52,4 +59,5 @@ public class EmoteChatConfiguration extends AddonConfig {
   public ConfigProperty<Integer> emoteQuality() { return this.emoteQuality; }
 
   public ConfigProperty<Boolean> animatedEmotes() { return this.animatedEmotes; }
+  public ConfigProperty<Boolean> doNotCheckForUnknownMessages() { return this.doNotCheckForUnknownMessages; }
 }
