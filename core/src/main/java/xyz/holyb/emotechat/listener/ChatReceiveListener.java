@@ -11,18 +11,14 @@ import xyz.holyb.emotechat.EmoteChatAddon;
 import xyz.holyb.emotechat.bttv.BTTVEmote;
 import xyz.holyb.emotechat.emote.LegacyGlobalId;
 import xyz.holyb.emotechat.emote.LegacyServerEmote;
-import xyz.holyb.emotechat.utils.ImageUtils;
 
 import java.io.IOException;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.concurrent.TimeUnit;
 
 public class ChatReceiveListener {
-  // TODO: integrate api to use emotes without using long string (once i buy server for that)
-  // ^ reference: https://github.com/EmoteChat/EmoteChat/blob/master/emotechat-core/src/main/java/de/emotechat/addon/bttv/EmoteProvider.java
-
   private final EmoteChatAddon addon;
-  private final ImageUtils imageUtils = new ImageUtils();
 
   public ChatReceiveListener(EmoteChatAddon addon) {
     this.addon = addon;
@@ -109,16 +105,14 @@ public class ChatReceiveListener {
 
   @Subscribe
   public void onChatReceive(ChatReceiveEvent event) {
-    if (!addon.configuration().enabled().get()) return;
-
     ChatMessage message = event.chatMessage();
 
     if (message.component().getChildren().isEmpty()){
-      Map<LegacyGlobalId, Integer> emotes = containsEmote(message.getFormattedText());
-
-      if (emotes.isEmpty()) return;
-
       Task.builder(() -> {
+        Map<LegacyGlobalId, Integer> emotes = containsEmote(message.getFormattedText());
+
+        if (emotes.isEmpty()) return;
+
         try {
           TextComponent component = replaceEmote(Component.text(message.getFormattedText()), emotes,
               message);
@@ -129,7 +123,7 @@ public class ChatReceiveListener {
         } catch (Exception e) {
           e.printStackTrace();
         }
-      }).build().execute();
+      }).delay((int) (addon.configuration().renderDelay().get() * 1000), TimeUnit.MILLISECONDS).build().execute();
     } else {
       Task.builder(() -> {
         try {
@@ -142,7 +136,7 @@ public class ChatReceiveListener {
         } catch (Exception e) {
           e.printStackTrace();
         }
-      }).build().execute();
+      }).delay((int) (addon.configuration().renderDelay().get() * 1000), TimeUnit.MILLISECONDS).build().execute();
     }
   }
 }

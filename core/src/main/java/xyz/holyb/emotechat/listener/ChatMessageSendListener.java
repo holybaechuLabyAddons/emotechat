@@ -3,7 +3,6 @@ package xyz.holyb.emotechat.listener;
 import net.labymod.api.event.Subscribe;
 import net.labymod.api.event.client.chat.ChatMessageSendEvent;
 import xyz.holyb.emotechat.EmoteChatAddon;
-import xyz.holyb.emotechat.bttv.BTTVEmote;
 
 public class ChatMessageSendListener {
   private final EmoteChatAddon addon;
@@ -32,6 +31,6 @@ public class ChatMessageSendListener {
       });
     }
 
-    event.changeMessage(String.join(" ", words));
+    event.changeMessage(String.join(" ", words), message);
   }
 }
