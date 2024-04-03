@@ -86,7 +86,7 @@ public class ChatReceiveListener {
 
     for (Component component : components) {
       if (!component.getChildren().isEmpty()) {
-        component = Component.empty().setChildren(replaceEmoteFromComponents(component.getChildren(), message));
+        component = component.copy().setChildren(replaceEmoteFromComponents(component.getChildren(), message));
       }
 
       if (component instanceof TextComponent textComponent) {
