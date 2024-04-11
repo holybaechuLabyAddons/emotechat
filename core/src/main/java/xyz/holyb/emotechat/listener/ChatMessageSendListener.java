@@ -35,16 +35,16 @@ public class ChatMessageSendListener {
 //    Laby.labyAPI().minecraft().chatExecutor().displayClientMessage(serverComponent);
 
     String message = event.getMessage();
+    String prefix = this.addon.configuration().prefix().get();
 
     String[] words = message.split(" ");
     for (int i = 0; i < words.length; i++) {
       String word = words[i].toLowerCase();
-      if (!(word.startsWith(":") && word.endsWith(":"))) continue;
+      if (!prefix.isEmpty() && !(word.startsWith(prefix) && word.endsWith(prefix))) continue;
 
       int finalI = i;
       addon.configuration().getEmotes().forEach((name, emote) -> {
-        if(name.toLowerCase().equals(word.substring(1, word.length()-1))){
-
+        if(name.toLowerCase().equals(word.substring(prefix.length(), word.length() - prefix.length()))){
           words[finalI] = String.format("%s%s%s", emote.legacyGlobalId.emoteName, addon.legacyEmoteProvider.idSplitter, emote.legacyGlobalId.emoteId); // ex: pepogAC
         }
       });

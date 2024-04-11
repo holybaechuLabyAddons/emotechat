@@ -35,7 +35,7 @@ public class EmoteChatAddon extends LabyAddon<EmoteChatConfiguration> {
 
     this.logger().info("Enabled the Addon");
 
-    if (this.labyAPI().addonService().isEnabled("chatutilities") && this.configuration().incompatWarn().get()) {
+    if (this.labyAPI().addonService().getAddon("chatutilities").isPresent() && this.configuration().incompatWarn().get()) {
       Notification.builder()
           .title(Component.text("EmoteChat"))
           .text(Component.text("EmoteChat might not work with ChatUtilities addon's \"Copy Button\" feature enabled."))

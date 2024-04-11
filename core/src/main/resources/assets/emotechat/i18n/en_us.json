@@ -13,6 +13,10 @@
           "nameInput": "Name..."
         }
       },
+      "prefix": {
+        "name": "Emote Prefix",
+        "description": "e.g. when prefix is set to \":\", You should type \":emote_name:\"."
+      },
       "emoteSize": {
         "name": "Emote Size"
       },
