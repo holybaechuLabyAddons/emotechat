@@ -1,5 +1,6 @@
 package xyz.holyb.emotechat;
 
+import net.labymod.api.Laby;
 import net.labymod.api.addon.LabyAddon;
 import net.labymod.api.client.component.Component;
 import net.labymod.api.models.addon.annotation.AddonMain;
@@ -35,7 +36,7 @@ public class EmoteChatAddon extends LabyAddon<EmoteChatConfiguration> {
 
     this.logger().info("Enabled the Addon");
 
-    if (this.labyAPI().addonService().isEnabled("chatutilities") && this.configuration().incompatWarn().get()) {
+    if (this.labyAPI().addonService().getAddon("chatutilities").isPresent() && this.configuration().incompatWarn().get()) {
       Notification.builder()
           .title(Component.text("EmoteChat"))
           .text(Component.text("EmoteChat might not work with ChatUtilities addon's \"Copy Button\" feature enabled."))

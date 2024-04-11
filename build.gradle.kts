@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "xyz.holyb"
-version = "1.0.10"
+version = "1.1.0"
 
 java.toolchain.languageVersion.set(JavaLanguageVersion.of(17))
 
@@ -17,7 +17,7 @@ labyMod {
         author = "holybaechu"
         description = "Use twitch emotes in Minecraft!"
         minecraftVersion = "1.19.2<*"
-        version = System.getenv().getOrDefault("VERSION", "1.0.10")
+        version = System.getenv().getOrDefault("VERSION", "1.1.0")
     }
 
     minecraft {
@@ -70,7 +70,7 @@ fun configureRun(provider: net.labymod.gradle.core.minecraft.provider.VersionPro
 
     provider.javaVersion = when (gameVersion) {
         else -> {
-            JavaVersion.VERSION_17
+            JavaVersion.VERSION_21
         }
     }
 

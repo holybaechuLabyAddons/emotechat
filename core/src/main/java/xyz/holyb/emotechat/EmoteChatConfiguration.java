@@ -5,6 +5,7 @@ import net.labymod.api.client.gui.screen.activity.Activity;
 import net.labymod.api.client.gui.screen.widget.widgets.activity.settings.ActivitySettingWidget.ActivitySetting;
 import net.labymod.api.client.gui.screen.widget.widgets.input.SliderWidget.SliderSetting;
 import net.labymod.api.client.gui.screen.widget.widgets.input.SwitchWidget.SwitchSetting;
+import net.labymod.api.client.gui.screen.widget.widgets.input.TextFieldWidget.TextFieldSetting;
 import net.labymod.api.configuration.loader.annotation.ConfigName;
 import net.labymod.api.configuration.loader.annotation.Exclude;
 import net.labymod.api.configuration.loader.property.ConfigProperty;
@@ -23,6 +24,9 @@ public class EmoteChatConfiguration extends AddonConfig {
 
   @Exclude
   public Map<String, BTTVEmote> emotes = new HashMap<>();
+
+  @TextFieldSetting
+  private final ConfigProperty<String> prefix = new ConfigProperty<>(":");
 
   @SliderSetting(min=8, max=32)
   private final ConfigProperty<Integer> emoteSize = new ConfigProperty<>(8);
@@ -50,6 +54,8 @@ public class EmoteChatConfiguration extends AddonConfig {
   }
 
   public Map<String, BTTVEmote> getEmotes() { return this.emotes; }
+
+  public ConfigProperty<String> prefix() { return this.prefix; }
 
   @MethodOrder(after = "enabled")
   @ActivitySetting
