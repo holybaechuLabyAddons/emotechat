@@ -3,6 +3,8 @@ package xyz.holyb.emotechat.listener;
 import net.labymod.api.client.chat.ChatMessage;
 import net.labymod.api.client.component.Component;
 import net.labymod.api.client.component.TextComponent;
+import net.labymod.api.client.component.format.NamedTextColor;
+import net.labymod.api.client.component.format.Style;
 import net.labymod.api.client.gui.icon.Icon;
 import net.labymod.api.event.Subscribe;
 import net.labymod.api.event.client.chat.ChatReceiveEvent;
@@ -50,7 +52,7 @@ public class ChatReceiveListener {
       LegacyGlobalId emoteID = entry.getKey();
       Integer emotePos = entry.getValue();
 
-      children.add(component.copy().text(String.join(" ", Arrays.copyOfRange(words, lastPos, emotePos))+" "));
+      if (emotePos != 0) children.add(component.copy().text(String.join(" ", Arrays.copyOfRange(words, lastPos, emotePos))+" "));
 
       // Emote
       LegacyServerEmote serverEmote = addon.legacyEmoteProvider.retrieveEmoteByGlobalId(emoteID);
@@ -66,7 +68,11 @@ public class ChatReceiveListener {
       } else {
         children.add(
           Component.empty().setChildren(List.of(
-            Component.icon(Icon.url(bttvEmote.getImageURL(addon.configuration().emoteQuality().get()))).setSize(addon.configuration().emoteSize().get()),
+            Component.icon(
+                Icon.url(bttvEmote.getImageURL(addon.configuration().emoteQuality().get())),
+                Style.builder().color(NamedTextColor.WHITE).build(),
+                addon.configuration().emoteSize().get()
+            ),
             Component.text(" ")
           ))
         );
@@ -85,16 +91,16 @@ public class ChatReceiveListener {
     List<Component> newComponents = new ArrayList<>();
 
     for (Component component : components) {
-      if (!component.getChildren().isEmpty()) {
-        component = component.copy().setChildren(replaceEmoteFromComponents(component.getChildren(), message));
-      }
-
       if (component instanceof TextComponent textComponent) {
         Map<LegacyGlobalId, Integer> emotes = containsEmote(textComponent.getText());
 
         if (!emotes.isEmpty()) {
           component = replaceEmote(textComponent, emotes, message);
         }
+      }
+
+      if (!component.getChildren().isEmpty()) {
+        component.setChildren(replaceEmoteFromComponents(component.getChildren(), message));
       }
 
       newComponents.add(component);

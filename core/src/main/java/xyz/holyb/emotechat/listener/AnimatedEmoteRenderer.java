@@ -3,6 +3,8 @@ package xyz.holyb.emotechat.listener;
 import net.labymod.api.Laby;
 import net.labymod.api.client.component.Component;
 import net.labymod.api.client.component.IconComponent;
+import net.labymod.api.client.component.format.NamedTextColor;
+import net.labymod.api.client.component.format.Style;
 import net.labymod.api.client.gui.icon.Icon;
 import net.labymod.api.event.Subscribe;
 import net.labymod.api.event.client.lifecycle.GameTickEvent;
@@ -44,7 +46,11 @@ public class AnimatedEmoteRenderer {
     }
     this.messages.get(key).add(message);
 
-    return Component.icon(Icon.url(this.animatedEmotes.get(key).get(0))).setSize(addon.configuration().emoteSize().get());
+    return Component.icon(
+        Icon.url(this.animatedEmotes.get(key).get(0)),
+        Style.builder().color(NamedTextColor.WHITE).build(),
+        addon.configuration().emoteSize().get()
+    );
   }
 
   private void updateIcon(List<Component> components, String url) {

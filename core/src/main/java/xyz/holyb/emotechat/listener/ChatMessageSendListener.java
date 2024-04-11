@@ -1,5 +1,8 @@
 package xyz.holyb.emotechat.listener;
 
+import net.labymod.api.Laby;
+import net.labymod.api.client.component.Component;
+import net.labymod.api.client.component.format.NamedTextColor;
 import net.labymod.api.event.Priority;
 import net.labymod.api.event.Subscribe;
 import net.labymod.api.event.client.chat.ChatMessageSendEvent;
@@ -15,6 +18,21 @@ public class ChatMessageSendListener {
   @Subscribe(Priority.EARLY)
   public void onChatMessageSend(ChatMessageSendEvent event){
     if (!addon.configuration().enabled().get()) return;
+
+    // Simulate GlobalChat message (for testing purposes)
+//    Component serverComponent = Component
+//        .text("[", NamedTextColor.DARK_GRAY)
+//        .append(Component.text("hypixel.net", NamedTextColor.GRAY))
+//        .append(Component.text("]", NamedTextColor.DARK_GRAY))
+//        .append(Component.space());
+//
+//    Component playerName = Component
+//        .text("netheriteprefixFL holybaechu", NamedTextColor.GRAY) // EmoteChat Prefix
+//        .append(Component.text(" » ", NamedTextColor.DARK_GRAY))
+//        .append(Component.text("Test", NamedTextColor.WHITE));
+//
+//    serverComponent.append(playerName);
+//    Laby.labyAPI().minecraft().chatExecutor().displayClientMessage(serverComponent);
 
     String message = event.getMessage();
 
