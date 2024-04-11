@@ -1,5 +1,6 @@
 package xyz.holyb.emotechat.listener;
 
+import net.labymod.api.event.Priority;
 import net.labymod.api.event.Subscribe;
 import net.labymod.api.event.client.chat.ChatMessageSendEvent;
 import xyz.holyb.emotechat.EmoteChatAddon;
@@ -11,7 +12,7 @@ public class ChatMessageSendListener {
       this.addon = addon;
   }
 
-  @Subscribe
+  @Subscribe(Priority.EARLY)
   public void onChatMessageSend(ChatMessageSendEvent event){
     if (!addon.configuration().enabled().get()) return;
 
