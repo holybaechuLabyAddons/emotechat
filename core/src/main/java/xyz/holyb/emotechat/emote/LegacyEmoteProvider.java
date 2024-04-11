@@ -9,6 +9,7 @@ import xyz.holyb.emotechat.bttv.BTTVEmote;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 
 public class LegacyEmoteProvider {
@@ -47,12 +48,21 @@ public class LegacyEmoteProvider {
       return cachedServerEmote;
     }
 
-    cachedServerEmotes.put(globalId, Request.ofGson(LegacyServerEmote.class)
-        .addHeader("User-Agent", "EmoteChat addon for LabyMod 4")
-        .addHeader("Content-Type", "application/json")
-        .url(BACKEND_URL + String.format(EMOTE_INFO_ROUTE, globalId.toString(this.idSplitter)))
-        .executeSync().get()
-    );
+    try {
+      cachedServerEmotes.put(globalId, Request.ofGson(LegacyServerEmote.class)
+          .addHeader("User-Agent", "EmoteChat addon for LabyMod 4")
+          .addHeader("Content-Type", "application/json")
+          .url(BACKEND_URL + String.format(EMOTE_INFO_ROUTE, globalId.toString(this.idSplitter)))
+          .executeSync().get()
+      );
+    } catch (Exception e) {
+      if (
+          !(e instanceof NoSuchElementException)
+      ) {
+        e.printStackTrace();
+      }
+      return null;
+    }
 
     return retrieveEmoteByGlobalId(globalId);
   }

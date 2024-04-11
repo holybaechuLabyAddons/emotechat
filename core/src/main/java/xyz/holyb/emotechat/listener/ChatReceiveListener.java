@@ -56,6 +56,10 @@ public class ChatReceiveListener {
 
       // Emote
       LegacyServerEmote serverEmote = addon.legacyEmoteProvider.retrieveEmoteByGlobalId(emoteID);
+      if (Objects.isNull(serverEmote)) continue;
+
+
+
       BTTVEmote bttvEmote = new BTTVEmote(serverEmote.globalId, serverEmote.bttvId, serverEmote.name, serverEmote.imageType);
 
       if (bttvEmote.animated && addon.configuration().animatedEmotes().get()) {

@@ -1,5 +1,6 @@
 package xyz.holyb.emotechat;
 
+import net.labymod.api.Laby;
 import net.labymod.api.addon.LabyAddon;
 import net.labymod.api.client.component.Component;
 import net.labymod.api.models.addon.annotation.AddonMain;
