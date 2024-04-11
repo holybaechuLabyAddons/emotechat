@@ -23,6 +23,7 @@ import xyz.holyb.emotechat.bttv.BTTVSearch;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 
 @AutoActivity
@@ -171,6 +172,11 @@ public class EmotesActivity extends Activity {
 
     buttons.addEntry(ButtonWidget.i18n("labymod.ui.button.done", () -> {
       BTTVEmote selected = resultsWidget.getSelected();
+      if (Objects.isNull(selected)) {
+        this.setAction(null);
+        return;
+      }
+
       String name = nameInput.getText();
 
       selected.legacyGlobalId = addon.legacyEmoteProvider.addEmote(selected.id).globalId;
