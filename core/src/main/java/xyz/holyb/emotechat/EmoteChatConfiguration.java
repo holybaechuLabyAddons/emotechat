@@ -9,10 +9,11 @@ import net.labymod.api.client.gui.screen.widget.widgets.input.TextFieldWidget.Te
 import net.labymod.api.configuration.loader.annotation.ConfigName;
 import net.labymod.api.configuration.loader.annotation.Exclude;
 import net.labymod.api.configuration.loader.property.ConfigProperty;
+import net.labymod.api.configuration.settings.annotation.SettingExperimental;
 import net.labymod.api.configuration.settings.annotation.SettingSection;
 import net.labymod.api.util.MethodOrder;
 import xyz.holyb.emotechat.activity.EmotesActivity;
-import xyz.holyb.emotechat.bttv.BTTVEmote;
+import xyz.holyb.emotechat.emote.Emote;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -23,7 +24,7 @@ public class EmoteChatConfiguration extends AddonConfig {
   private final ConfigProperty<Boolean> enabled = new ConfigProperty<>(true);
 
   @Exclude
-  public Map<String, BTTVEmote> emotes = new HashMap<>();
+  public Map<String, Emote> emotes = new HashMap<>();
 
   @TextFieldSetting
   private final ConfigProperty<String> prefix = new ConfigProperty<>(":");
@@ -39,10 +40,8 @@ public class EmoteChatConfiguration extends AddonConfig {
 
   @SettingSection("experimental")
   @SwitchSetting
+  @SettingExperimental
   private final ConfigProperty<Boolean> animatedEmotes = new ConfigProperty<>(false);
-
-  @SwitchSetting
-  private final ConfigProperty<Boolean> doNotCheckForUnknownMessages = new ConfigProperty<>(false);
 
   @SettingSection("others")
   @SwitchSetting
@@ -53,7 +52,7 @@ public class EmoteChatConfiguration extends AddonConfig {
     return this.enabled;
   }
 
-  public Map<String, BTTVEmote> getEmotes() { return this.emotes; }
+  public Map<String, Emote> getEmotes() { return this.emotes; }
 
   public ConfigProperty<String> prefix() { return this.prefix; }
 
@@ -68,8 +67,6 @@ public class EmoteChatConfiguration extends AddonConfig {
   public ConfigProperty<Integer> emoteQuality() { return this.emoteQuality; }
 
   public ConfigProperty<Boolean> animatedEmotes() { return this.animatedEmotes; }
-
-  public ConfigProperty<Boolean> doNotCheckForUnknownMessages() { return this.doNotCheckForUnknownMessages; }
 
   public ConfigProperty<Boolean> incompatWarn() { return this.incompatWarn; }
 

@@ -6,14 +6,14 @@ import net.labymod.api.client.gui.screen.Parent;
 import net.labymod.api.client.gui.screen.widget.SimpleWidget;
 import net.labymod.api.client.gui.screen.widget.widgets.ComponentWidget;
 import net.labymod.api.client.gui.screen.widget.widgets.renderer.IconWidget;
-import xyz.holyb.emotechat.bttv.BTTVEmote;
+import xyz.holyb.emotechat.emote.Emote;
 
 @AutoWidget
 public class EmoteWidget extends SimpleWidget {
-  private final BTTVEmote emote;
+  private final Emote emote;
   public final String name;
 
-  public EmoteWidget(String name, BTTVEmote emote){
+  public EmoteWidget(String name, Emote emote){
     this.name = name;
     this.emote = emote;
   }

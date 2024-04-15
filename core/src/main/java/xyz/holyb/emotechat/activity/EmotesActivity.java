@@ -20,6 +20,8 @@ import net.labymod.api.util.concurrent.task.Task;
 import xyz.holyb.emotechat.EmoteChatAddon;
 import xyz.holyb.emotechat.bttv.BTTVEmote;
 import xyz.holyb.emotechat.bttv.BTTVSearch;
+import xyz.holyb.emotechat.emote.Emote;
+import xyz.holyb.emotechat.emote.EmoteProvider;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,22 +32,19 @@ import java.util.UUID;
 @Link("emotes.lss")
 public class EmotesActivity extends Activity {
 
-  private EmoteChatAddon addon;
+  private final EmoteChatAddon addon;
 
   private Action action;
 
   private ButtonWidget removeButton;
   private final VerticalListWidget<EmoteWidget> emotesList;
-  private Map<String, EmoteWidget> emoteWidgets;
-  private EmoteWidget selectedEmoteWidget;
+  private final Map<String, EmoteWidget> emoteWidgets;
 
   public EmotesActivity() {
     this.addon = EmoteChatAddon.get();
 
     this.emoteWidgets = new HashMap<>();
-    this.addon.configuration().getEmotes().forEach((name, bttvEmote) -> {
-      this.emoteWidgets.put(name, new EmoteWidget(name, bttvEmote));
-    });
+    this.addon.configuration().getEmotes().forEach((name, emote) -> this.emoteWidgets.put(name, new EmoteWidget(name, emote)));
 
     this.emotesList = new VerticalListWidget<>().addId("emotes-list");
     this.emotesList.setSelectCallback(emoteWidget -> this.removeButton.setEnabled(true));
@@ -64,7 +63,7 @@ public class EmotesActivity extends Activity {
 
     container.addFlexibleContent(new ScrollWidget(this.emotesList));
 
-    this.selectedEmoteWidget = emotesList.listSession().getSelectedEntry();
+    EmoteWidget selectedEmoteWidget = emotesList.listSession().getSelectedEntry();
 
     HorizontalListWidget menu = new HorizontalListWidget();
     menu.addId("buttons");
@@ -96,8 +95,8 @@ public class EmotesActivity extends Activity {
 
         break;
       case REMOVE:
-        this.emoteWidgets.remove(this.selectedEmoteWidget.name);
-        addon.configuration().getEmotes().remove(this.selectedEmoteWidget.name);
+        this.emoteWidgets.remove(selectedEmoteWidget.name);
+        addon.configuration().getEmotes().remove(selectedEmoteWidget.name);
 
         this.setAction(null);
 
@@ -138,29 +137,25 @@ public class EmotesActivity extends Activity {
     DropdownWidget<BTTVEmote> resultsWidget = new DropdownWidget<>().addId("results");
     resultsContainer.addEntry(resultsWidget);
 
-    resultsWidget.setChangeListener(emote -> {
-        emotePreview.icon().set(Icon.url(emote.getImageURL(1)));
-    });
+    resultsWidget.setChangeListener(emote -> emotePreview.icon().set(Icon.url(emote.getImageURL(1))));
 
     containerWidget.addContent(resultsContainer);
 
     buttonWidget.setActionListener(() -> {
       if (inputWidget.getText().length() < 3) return;
 
-      BTTVSearch.search(inputWidget.getText(), (response) -> {
-        Task.builder(() -> {
-          resultsWidget.clear();
+      BTTVSearch.search(inputWidget.getText(), (response) -> Task.builder(() -> {
+        resultsWidget.clear();
 
-          List<BTTVEmote> results = response.get();
-          for (int i = 0; i < results.size(); i++) {
-            BTTVEmote emote = results.get(i);
+        List<BTTVEmote> results = response.get();
+        for (int i = 0; i < results.size(); i++) {
+          BTTVEmote emote = results.get(i);
 
-            if(i == 0) resultsWidget.setSelected(emote);
+          if(i == 0) resultsWidget.setSelected(emote);
 
-            resultsWidget.add(emote);
-          }
-        }).build().executeOnRenderThread();
-      });
+          resultsWidget.add(emote);
+        }
+      }).build().executeOnRenderThread());
     });
 
     TextFieldWidget nameInput = new TextFieldWidget().addId("name-input");
@@ -179,12 +174,12 @@ public class EmotesActivity extends Activity {
 
       String name = nameInput.getText();
 
-      selected.legacyGlobalId = addon.legacyEmoteProvider.addEmote(selected.id).globalId;
+      Emote serverEmote = EmoteProvider.addBTTV(selected.id);
 
       if (name.contains(" ")) return;
 
-      this.emoteWidgets.put(name, new EmoteWidget(name, selected));
-      this.addon.configuration().getEmotes().put(name, selected);
+      this.emoteWidgets.put(name, new EmoteWidget(name, serverEmote));
+      this.addon.configuration().getEmotes().put(name, serverEmote);
       this.setAction(null);
     }));
     buttons.addEntry(ButtonWidget.i18n("labymod.ui.button.cancel", () -> this.setAction(null)));

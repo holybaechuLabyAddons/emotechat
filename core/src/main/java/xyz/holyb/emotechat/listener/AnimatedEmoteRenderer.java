@@ -1,6 +1,5 @@
 package xyz.holyb.emotechat.listener;
 
-import net.labymod.api.Laby;
 import net.labymod.api.client.component.Component;
 import net.labymod.api.client.component.IconComponent;
 import net.labymod.api.client.component.format.NamedTextColor;
@@ -10,7 +9,7 @@ import net.labymod.api.event.Subscribe;
 import net.labymod.api.event.client.lifecycle.GameTickEvent;
 import net.labymod.api.client.chat.ChatMessage;
 import xyz.holyb.emotechat.EmoteChatAddon;
-import xyz.holyb.emotechat.bttv.BTTVEmote;
+import xyz.holyb.emotechat.emote.Emote;
 import xyz.holyb.emotechat.utils.ImageUtils;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -28,15 +27,18 @@ public class AnimatedEmoteRenderer {
     this.addon = addon;
   }
 
-  public IconComponent addAnimatedEmote(BTTVEmote emote, ChatMessage message) throws IOException {
+  public IconComponent addAnimatedEmote(Emote emote, ChatMessage message) throws IOException {
     Integer emoteQuality = addon.configuration().emoteQuality().get();
-    String key = emote.legacyGlobalId.emoteId+"x"+emoteQuality;
+    String key = emote.id+"x"+emoteQuality;
+
     if (!this.animatedEmotes.containsKey(key)) {
       List<String> emoteFrames = new ArrayList<>();
+
       for (BufferedImage image : imageUtils.getBufferedImagesFromGIF(emote.getImageURL(emoteQuality))) {
         String base64 = "data:image/png;base64,"+imageUtils.getBase64FromImage(image);
         emoteFrames.add(base64);
       }
+
       this.animatedEmotes.put(key, emoteFrames);
       this.frameCounts.put(key, 0);
     }
@@ -47,7 +49,7 @@ public class AnimatedEmoteRenderer {
     this.messages.get(key).add(message);
 
     return Component.icon(
-        Icon.url(this.animatedEmotes.get(key).get(0)),
+        Icon.url(this.animatedEmotes.get(key).getFirst()),
         Style.builder().color(NamedTextColor.WHITE).build(),
         addon.configuration().emoteSize().get()
     );
@@ -78,7 +80,7 @@ public class AnimatedEmoteRenderer {
       while (iterator.hasNext()) {
         ChatMessage message = iterator.next();
 
-        if (!this.addon.configuration().doNotCheckForUnknownMessages().get() && Laby.labyAPI().chatProvider().chatController().getMessages().contains(message)) {
+        if (message.wasDeleted()) {
           iterator.remove();
           if (this.messages.get(globalId).isEmpty()) {
             emotesToRemove.add(globalId);

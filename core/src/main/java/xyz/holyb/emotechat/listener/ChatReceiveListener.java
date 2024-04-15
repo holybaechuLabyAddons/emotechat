@@ -10,9 +10,8 @@ import net.labymod.api.event.Subscribe;
 import net.labymod.api.event.client.chat.ChatReceiveEvent;
 import net.labymod.api.util.concurrent.task.Task;
 import xyz.holyb.emotechat.EmoteChatAddon;
-import xyz.holyb.emotechat.bttv.BTTVEmote;
-import xyz.holyb.emotechat.emote.LegacyGlobalId;
-import xyz.holyb.emotechat.emote.LegacyServerEmote;
+import xyz.holyb.emotechat.emote.Emote;
+import xyz.holyb.emotechat.emote.EmoteProvider;
 
 import java.io.IOException;
 import java.util.*;
@@ -26,21 +25,21 @@ public class ChatReceiveListener {
     this.addon = addon;
   }
 
-  private Map<LegacyGlobalId, Integer> containsEmote(String string) {
-    Map<LegacyGlobalId, Integer> emotes = new HashMap<>();
+  private Map<Emote, Integer> containsEmote(String string) {
+    Map<Emote, Integer> emotes = new HashMap<>();
 
     String[] words = string.split(" ");
     for (int i = 0; i < words.length; i++) {
       String word = words[i];
 
-      LegacyGlobalId emoteID = LegacyGlobalId.parse(addon.legacyEmoteProvider.idSplitter, word);
-      if (Objects.nonNull(emoteID)) emotes.put(emoteID, i);
+      Emote emote = Emote.parse(word);
+      if (Objects.nonNull(emote)) emotes.put(emote, i);
     }
 
     return emotes;
   }
 
-  private TextComponent replaceEmote(TextComponent component, Map<LegacyGlobalId, Integer> emotes, ChatMessage message)
+  private TextComponent replaceEmote(TextComponent component, Map<Emote, Integer> emotes, ChatMessage message)
       throws IOException {
     // ! Needs to be called when component contains emote
 
@@ -48,24 +47,20 @@ public class ChatReceiveListener {
 
     String[] words = component.getText().split(" ");
     int lastPos = 0;
-    for (Entry<LegacyGlobalId, Integer> entry : emotes.entrySet()) {
-      LegacyGlobalId emoteID = entry.getKey();
+    for (Entry<Emote, Integer> entry : emotes.entrySet()) {
+      Emote emote = entry.getKey();
       Integer emotePos = entry.getValue();
 
       if (emotePos != 0) children.add(component.copy().text(String.join(" ", Arrays.copyOfRange(words, lastPos, emotePos))+" "));
 
       // Emote
-      LegacyServerEmote serverEmote = addon.legacyEmoteProvider.retrieveEmoteByGlobalId(emoteID);
+      Emote serverEmote = EmoteProvider.get(emote.id);
       if (Objects.isNull(serverEmote)) continue;
 
-
-
-      BTTVEmote bttvEmote = new BTTVEmote(serverEmote.globalId, serverEmote.bttvId, serverEmote.name, serverEmote.imageType);
-
-      if (bttvEmote.animated && addon.configuration().animatedEmotes().get()) {
+      if (serverEmote.animated && addon.configuration().animatedEmotes().get()) {
         children.add(
             Component.empty().setChildren(List.of(
-                addon.gameTickListener.addAnimatedEmote(bttvEmote, message),
+                addon.gameTickListener.addAnimatedEmote(serverEmote, message),
                 Component.text(" ")
             ))
         );
@@ -73,7 +68,7 @@ public class ChatReceiveListener {
         children.add(
           Component.empty().setChildren(List.of(
             Component.icon(
-                Icon.url(bttvEmote.getImageURL(addon.configuration().emoteQuality().get())),
+                Icon.url(serverEmote.getImageURL(addon.configuration().emoteQuality().get())),
                 Style.builder().color(NamedTextColor.WHITE).build(),
                 addon.configuration().emoteSize().get()
             ),
@@ -96,7 +91,7 @@ public class ChatReceiveListener {
 
     for (Component component : components) {
       if (component instanceof TextComponent textComponent) {
-        Map<LegacyGlobalId, Integer> emotes = containsEmote(textComponent.getText());
+        Map<Emote, Integer> emotes = containsEmote(textComponent.getText());
 
         if (!emotes.isEmpty()) {
           component = replaceEmote(textComponent, emotes, message);
@@ -119,7 +114,7 @@ public class ChatReceiveListener {
 
     if (message.component().getChildren().isEmpty()){
       Task.builder(() -> {
-        Map<LegacyGlobalId, Integer> emotes = containsEmote(message.getFormattedText());
+        Map<Emote, Integer> emotes = containsEmote(message.getFormattedText());
 
         if (emotes.isEmpty()) return;
 

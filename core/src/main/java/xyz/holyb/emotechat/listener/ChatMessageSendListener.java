@@ -1,8 +1,5 @@
 package xyz.holyb.emotechat.listener;
 
-import net.labymod.api.Laby;
-import net.labymod.api.client.component.Component;
-import net.labymod.api.client.component.format.NamedTextColor;
 import net.labymod.api.event.Priority;
 import net.labymod.api.event.Subscribe;
 import net.labymod.api.event.client.chat.ChatMessageSendEvent;
@@ -15,6 +12,7 @@ public class ChatMessageSendListener {
       this.addon = addon;
   }
 
+  // TODO: Block sending/rendering banned emote
   @Subscribe(Priority.EARLY)
   public void onChatMessageSend(ChatMessageSendEvent event){
     if (!addon.configuration().enabled().get()) return;
@@ -45,7 +43,7 @@ public class ChatMessageSendListener {
       int finalI = i;
       addon.configuration().getEmotes().forEach((name, emote) -> {
         if(name.toLowerCase().equals(word.substring(prefix.length(), word.length() - prefix.length()))){
-          words[finalI] = String.format("%s%s%s", emote.legacyGlobalId.emoteName, addon.legacyEmoteProvider.idSplitter, emote.legacyGlobalId.emoteId); // ex: pepogAC
+          words[finalI] = String.format("%s", emote.id); // ex: pepoG|a
         }
       });
     }
