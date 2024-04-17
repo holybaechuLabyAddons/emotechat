@@ -62,7 +62,7 @@ public class Emote {
   }
 
   public static Emote parse(String id) {
-    if (!id.matches(String.format("^.*?\\%s[a-zA-Z0-9]*", EmoteProvider.EMOTE_SPLITTER))) {
+    if (!id.matches(String.format("^[^ ]{1,}?\\%s[a-zA-Z0-9]{1,}", EmoteProvider.EMOTE_SPLITTER))) {
       Emote legacyEmote = parseLegacyEmote(id);
       return Objects.nonNull(legacyEmote) ? legacyEmote : null;
     };

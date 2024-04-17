@@ -5,19 +5,18 @@ plugins {
 }
 
 group = "xyz.holyb"
-version = "1.1.1"
+version = "1.1.2"
 
 java.toolchain.languageVersion.set(JavaLanguageVersion.of(17))
 
 labyMod {
-    defaultPackageName = "xyz.holyb" //change this to your main package name (used by all modules)
+    defaultPackageName = "xyz.holyb" //change this to your main package name (uszed by all modules)
     addonInfo {
         namespace = "emotechat"
         displayName = "EmoteChat"
         author = "holybaechu"
-        description = "Use twitch emotes in Minecraft!"
         minecraftVersion = "1.19.2<*"
-        version = System.getenv().getOrDefault("VERSION", "1.1.1")
+        version = System.getenv().getOrDefault("VERSION", "1.1.2")
     }
 
     minecraft {
