@@ -41,7 +41,7 @@ public class EmoteChatConfiguration extends AddonConfig {
   @SettingSection("experimental")
   @SwitchSetting
   @SettingExperimental
-  private final ConfigProperty<Boolean> animatedEmotes = new ConfigProperty<>(false);
+  private final ConfigProperty<Boolean> animatedEmotes = new ConfigProperty<>(true);
 
   @SettingSection("others")
   @SwitchSetting

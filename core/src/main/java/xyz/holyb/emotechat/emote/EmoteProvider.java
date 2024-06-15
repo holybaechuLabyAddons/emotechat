@@ -4,7 +4,6 @@ import com.google.gson.JsonObject;
 import net.labymod.api.util.io.web.request.Request;
 import net.labymod.api.util.io.web.request.Response;
 import net.labymod.api.util.io.web.request.types.GsonRequest;
-import net.labymod.api.util.logging.Logging;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;

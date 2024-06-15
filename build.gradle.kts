@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "xyz.holyb"
-version = System.getenv().getOrDefault("VERSION", "1.1.2")
+version = System.getenv().getOrDefault("VERSION", "1.1.3")
 
 labyMod {
     defaultPackageName = "xyz.holyb" //change this to your main package name (uszed by all modules)

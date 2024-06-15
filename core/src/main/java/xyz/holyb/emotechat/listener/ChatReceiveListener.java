@@ -3,20 +3,28 @@ package xyz.holyb.emotechat.listener;
 import net.labymod.api.client.chat.ChatMessage;
 import net.labymod.api.client.component.Component;
 import net.labymod.api.client.component.TextComponent;
+import net.labymod.api.client.component.TranslatableComponent;
 import net.labymod.api.client.component.format.NamedTextColor;
 import net.labymod.api.client.component.format.Style;
 import net.labymod.api.client.gui.icon.Icon;
+import net.labymod.api.event.Priority;
 import net.labymod.api.event.Subscribe;
 import net.labymod.api.event.client.chat.ChatReceiveEvent;
 import net.labymod.api.util.concurrent.task.Task;
 import xyz.holyb.emotechat.EmoteChatAddon;
 import xyz.holyb.emotechat.emote.Emote;
 import xyz.holyb.emotechat.emote.EmoteProvider;
+import xyz.holyb.emotechat.gui.AnimatedEmote;
 
 import java.io.IOException;
-import java.util.*;
-import java.util.Map.Entry;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
+
+import static xyz.holyb.emotechat.gui.AnimatedEmote.renderEmotes;
 
 public class ChatReceiveListener {
   private final EmoteChatAddon addon;
@@ -25,123 +33,110 @@ public class ChatReceiveListener {
     this.addon = addon;
   }
 
-  private Map<Emote, Integer> containsEmote(String string) {
-    Map<Emote, Integer> emotes = new HashMap<>();
-
-    String[] words = string.split(" ");
-    for (int i = 0; i < words.length; i++) {
-      String word = words[i];
-
-      Emote emote = Emote.parse(word);
-      if (Objects.nonNull(emote)) emotes.put(emote, i);
-    }
-
-    return emotes;
-  }
-
-  private TextComponent replaceEmote(TextComponent component, Map<Emote, Integer> emotes, ChatMessage message)
-      throws IOException {
-    // ! Needs to be called when component contains emote
-
-    Collection<Component> children = new ArrayList<>();
-
-    String[] words = component.getText().split(" ");
-    int lastPos = 0;
-    for (Entry<Emote, Integer> entry : emotes.entrySet()) {
-      Emote emote = entry.getKey();
-      Integer emotePos = entry.getValue();
-
-      if (emotePos != 0) children.add(component.copy().text(String.join(" ", Arrays.copyOfRange(words, lastPos, emotePos))+" "));
-
-      // Emote
-      Emote serverEmote = EmoteProvider.get(emote.id);
-      if (Objects.isNull(serverEmote)) continue;
-
-      if (serverEmote.animated && addon.configuration().animatedEmotes().get()) {
-        children.add(
-            Component.empty().setChildren(List.of(
-                addon.gameTickListener.addAnimatedEmote(serverEmote, message),
-                Component.text(" ")
-            ))
-        );
-      } else {
-        children.add(
-          Component.empty().setChildren(List.of(
-            Component.icon(
-                Icon.url(serverEmote.getImageURL(addon.configuration().emoteQuality().get())),
-                Style.builder().color(NamedTextColor.WHITE).build(),
-                addon.configuration().emoteSize().get()
-            ),
-            Component.text(" ")
-          ))
+  private Component createEmoteComponent(Emote serverEmote, ChatMessage message) throws IOException, URISyntaxException {
+    if (addon.configuration().incompatWarn().get()) {
+      if (!addon.labyAPI().config().ingame().advancedChat().enabled().get()) {
+        addon.labyAPI().minecraft().chatExecutor().displayClientMessage(
+            Component.translatable("emotechat.notifications.incompatWarn.advancedchat").color(NamedTextColor.RED)
         );
       }
-
-      lastPos = emotePos;
     }
 
-    children.add(component.copy().text(String.join(" ", Arrays.copyOfRange(words, lastPos+1, words.length))));
-
-    return Component.empty().setChildren(children);
+    if (serverEmote.animated && addon.configuration().animatedEmotes().get()) {
+      renderEmotes();
+      return Component.empty().setChildren(List.of(
+          AnimatedEmote.url(
+              serverEmote.getImageURL(addon.configuration().emoteQuality().get()),
+              message,
+              addon.configuration().emoteSize().get()
+          ).iconComponent,
+          Component.text(" ")
+      ));
+    } else {
+      return Component.empty().setChildren(List.of(
+          Component.icon(
+              Icon.url(serverEmote.getImageURL(addon.configuration().emoteQuality().get())),
+              Style.builder().color(NamedTextColor.WHITE).build(),
+              addon.configuration().emoteSize().get()
+          ),
+          Component.text(" ")
+      ));
+    }
   }
 
-  private List<Component> replaceEmoteFromComponents(List<Component> components, ChatMessage message)
-      throws IOException {
-    List<Component> newComponents = new ArrayList<>();
 
-    for (Component component : components) {
-      if (component instanceof TextComponent textComponent) {
-        Map<Emote, Integer> emotes = containsEmote(textComponent.getText());
+  private Component replaceEmote(Component component, ChatMessage message) {
+    Component result = Component.empty();
+    boolean replaced = false;
 
-        if (!emotes.isEmpty()) {
-          component = replaceEmote(textComponent, emotes, message);
+    List<Component> children = new ArrayList<>(component.getChildren());
+    for (int i = 0; i < children.size(); i++) {
+      Component replacement = replaceEmote(children.get(i), message);
+      if (Objects.nonNull(replacement)) {
+        children.set(i, replacement);
+        replaced = true;
+      }
+    }
+
+
+    if (component instanceof TranslatableComponent translatableComponent) {
+      List<Component> arguments = new ArrayList<>(translatableComponent.getArguments());
+      for (int i = 0; i < arguments.size(); i++) {
+        Component replacement = replaceEmote(arguments.get(i), message);
+        if (Objects.nonNull(replacement)) {
+          arguments.set(i, replacement);
+          replaced = true;
         }
       }
 
-      if (!component.getChildren().isEmpty()) {
-        component.setChildren(replaceEmoteFromComponents(component.getChildren(), message));
-      }
-
-      newComponents.add(component);
+      result = Component.translatable(translatableComponent.getKey()).arguments(arguments);
     }
 
-    return newComponents;
+    List<Component> replacement = new ArrayList<>();
+    if (component instanceof TextComponent textComponent) {
+      int lastReplacement = 0;
+      String[] words = textComponent.getText().split(" ");
+      for (int i = 0; i < words.length; i++) {
+        String word = words[i];
+
+        Emote emote = Emote.parse(word);
+        if (Objects.isNull(emote)) continue;
+
+        Emote serverEmote = EmoteProvider.get(emote.id);
+        if (Objects.isNull(serverEmote)) continue;
+
+        if (!replacement.isEmpty()) replacement.removeLast();
+        try {
+          replacement.addAll(List.of(
+              Component.text(String.join(" ", Arrays.copyOfRange(words, lastReplacement, i)) + " "),
+              createEmoteComponent(serverEmote, message)
+          ));
+        } catch(Exception e) {
+          addon.labyAPI().minecraft().chatExecutor().displayClientMessage(
+              Component.translatable("emotechat.notifications.error.render").color(NamedTextColor.RED)
+          );
+          addon.logger().debug("Failed to render an emote: ", e);
+        }
+
+        lastReplacement = i + 1;
+        replaced = true;
+      }
+
+      replacement.add(Component.text(String.join(" ", Arrays.copyOfRange(words, lastReplacement, words.length))));
+    }
+    replacement.addAll(children);
+
+    return replaced ? result.setChildren(replacement) : null;
   }
 
   @Subscribe
   public void onChatReceive(ChatReceiveEvent event) {
-    ChatMessage message = event.chatMessage();
+    Task.builder(() -> {
+      ChatMessage message = event.chatMessage();
+      Component replacement = replaceEmote(message.component(), message);
+      if (Objects.isNull(replacement)) return;
 
-    if (message.component().getChildren().isEmpty()){
-      Task.builder(() -> {
-        Map<Emote, Integer> emotes = containsEmote(message.getFormattedText());
-
-        if (emotes.isEmpty()) return;
-
-        try {
-          TextComponent component = replaceEmote(Component.text(message.getFormattedText()), emotes,
-              message);
-          Task.builder(() -> {
-            // Execute on render thread to prevent emote not being rendered for a long time
-            message.edit(component);
-          }).build().executeOnRenderThread();
-        } catch (Exception e) {
-          e.printStackTrace();
-        }
-      }).delay((int) (addon.configuration().renderDelay().get() * 1000), TimeUnit.MILLISECONDS).build().execute();
-    } else {
-      Task.builder(() -> {
-        try {
-          List<Component> newChildren = replaceEmoteFromComponents(message.component().getChildren(), message);
-
-          if (newChildren.equals(message.component().getChildren())) return;
-
-          // Execute on render thread to prevent emote not being rendered for a long time
-          Task.builder(() -> message.edit(message.component().setChildren(newChildren))).build().executeOnRenderThread();
-        } catch (Exception e) {
-          e.printStackTrace();
-        }
-      }).delay((int) (addon.configuration().renderDelay().get() * 1000), TimeUnit.MILLISECONDS).build().execute();
-    }
+      Task.builder(() -> message.edit(replacement)).build().executeOnRenderThread();
+    }).delay((int) (addon.configuration().renderDelay().get() * 1000), TimeUnit.MILLISECONDS).build().execute();
   }
 }

@@ -1,5 +1,13 @@
 {
   "emotechat": {
+    "notifications": {
+      "incompatWarn": {
+        "advancedchat": "EmoteChat doesn't work if \"Advanced Chat\" in \"LabyMod -> Ingame\" is disabled."
+      },
+      "error": {
+        "render": "There was an unexpected error while rendering an emote.\nPlease check the logs for more information."
+      }
+    },
     "settings": {
       "name": "EmoteChat",
       "enabled": {
@@ -28,7 +36,7 @@
         "description": "Increase this option if you notice any conflicts with other addons."
       },
       "animatedEmotes": {
-        "name": "Animated Emotes (Experimental)",
+        "name": "Animated Emotes",
         "description": "Renders animated emotes instead of static image.\nWARNING: This is experimental option. This option can cause high memory usage."
       },
       "doNotCheckForUnknownMessages": {

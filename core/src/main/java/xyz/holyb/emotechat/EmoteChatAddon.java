@@ -10,7 +10,6 @@ import net.labymod.api.notification.Notification;
 import xyz.holyb.emotechat.bttv.BTTVEmote;
 import xyz.holyb.emotechat.emote.EmoteProvider;
 import xyz.holyb.emotechat.listener.ChatMessageSendListener;
-import xyz.holyb.emotechat.listener.AnimatedEmoteRenderer;
 import xyz.holyb.emotechat.listener.ChatReceiveListener;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -39,8 +38,6 @@ public class EmoteChatAddon extends LabyAddon<EmoteChatConfiguration> {
     return instance;
   }
 
-  public AnimatedEmoteRenderer gameTickListener = new AnimatedEmoteRenderer(this);
-
   @Override
   protected void enable() {
     // Migrate configuration to new API
@@ -53,18 +50,10 @@ public class EmoteChatAddon extends LabyAddon<EmoteChatConfiguration> {
 
     this.registerSettingCategory();
 
-    this.registerListener(gameTickListener);
     this.registerListener(new ChatReceiveListener(this));
     this.registerListener(new ChatMessageSendListener(this));
 
     this.logger().info("Enabled the EmoteChat v" + this.addonInfo().getVersion());
-
-    if (this.labyAPI().addonService().getAddon("chatutilities").isPresent() && this.configuration().incompatWarn().get()) {
-      Notification.builder()
-          .title(Component.text("EmoteChat"))
-          .text(Component.text("EmoteChat might not work with ChatUtilities addon's \"Copy Button\" feature enabled."))
-          .buildAndPush();
-    }
   }
 
   @Override
