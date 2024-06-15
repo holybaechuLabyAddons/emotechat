@@ -5,9 +5,7 @@ plugins {
 }
 
 group = "xyz.holyb"
-version = "1.1.2"
-
-java.toolchain.languageVersion.set(JavaLanguageVersion.of(17))
+version = System.getenv().getOrDefault("VERSION", "1.1.2")
 
 labyMod {
     defaultPackageName = "xyz.holyb" //change this to your main package name (uszed by all modules)
@@ -16,7 +14,7 @@ labyMod {
         displayName = "EmoteChat"
         author = "holybaechu"
         minecraftVersion = "1.19.2<*"
-        version = System.getenv().getOrDefault("VERSION", "1.1.2")
+        version = getVersion().toString()
     }
 
     minecraft {
@@ -26,7 +24,9 @@ labyMod {
                 "1.19.4",
                 "1.20.1",
                 "1.20.2",
-                "1.20.4"
+                "1.20.4",
+                "1.20.5",
+                "1.20.6"
         ) { version, provider ->
             configureRun(provider, version)
         }
